@@ -1,0 +1,6 @@
+{
+    "short_unicode_upper": {"type": "string", "value": "\u03B4"},
+    "short_unicode_lower": {"type": "string", "value": "\u03B4"},
+    "max_unicode_upper": {"type": "string", "value": "\udbff\udfff"},
+    "max_unicode_lower": {"type": "string", "value": "\udbff\udfff"}
+}

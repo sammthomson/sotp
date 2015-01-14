@@ -3,6 +3,7 @@ package com.samthomson.tombinator
 import javax.xml.bind.DatatypeConverter.parseDateTime
 
 import com.samthomson.tombinator.TomlParser.Assignment
+import org.parboiled2.ParseError
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.io.{Codec, Source}
@@ -73,6 +74,11 @@ class TomlParserTest extends FlatSpec with Matchers {
   it should "allow escaped or unescaped single quotes" in {
     new TomlParser("\" \'   \"").basicString.run() should be (Success(TomlString(" \'   ")))
     new TomlParser("\" \\\' \"").basicString.run() should be (Success(TomlString(" \' ")))
+  }
+  it should "handle 8-digit unicode escapes" in {
+    val parser = new TomlParser("\"\\U0010ffff\"")
+    val result = parser.basicString.run()
+    result should be (Success(TomlString("\uDBFF\uDFFF")))
   }
 
   "TomlParser.literalString" should "not allow line breaks" in {
@@ -160,7 +166,14 @@ class TomlParserTest extends FlatSpec with Matchers {
     result should be (Success(TomlTable(Map())))
   }
   it should "parse a single assignment" in {
-    val result = new TomlParser("\n foo =\t5.2\t# comment").toml.run()
+    val parser = new TomlParser("\n foo =\t5.2\t# comment")
+    val result = parser.toml.run()
+    result match {
+      case Failure(e: ParseError) =>
+        System.err.println(parser.formatError(e))
+        System.err.println(e.formatTraces)
+      case _ => ()
+    }
     result should be (Success(TomlTable(Map("foo" -> TomlDouble(5.2)))))
   }
   it should "parse an empty table" in {
@@ -308,10 +321,7 @@ class TomlParserTest extends FlatSpec with Matchers {
     new TomlParser(input).toml.run() shouldBe an[Failure[_]]
   }
   it should "parse a sample file" in {
-    val example = {
-      val inputStream = getClass.getResourceAsStream("/example.toml")
-      Source.fromInputStream(inputStream)(Codec.UTF8).mkString
-    }
+    val example = readTestFile("/example.toml")
     val expected = Map(
       "title" -> "TOML Example",
       "basic_string" -> "I'm a string. '\"You can quote me\"'. Name\tJosé\nLocation\tSF. Tab \t newline \n you get \\ it.",
@@ -352,14 +362,6 @@ class TomlParserTest extends FlatSpec with Matchers {
     )
     val parser = new TomlParser(example)
     val result = parser.toml.run()
-//    result match {
-//      case Success(s) => println(s.value)
-//      case Failure(e: ParseError) => {
-//        System.err.println(parser.formatError(e))
-//        System.err.println(e.formatTraces)
-//      }
-//      case Failure(e) => e.printStackTrace()
-//    }
     result shouldBe an[Success[_]]
 //    def recursiveEq(a: Map[String, Any], b: Map[String, Any]): Boolean = {
 //      if (a.keys.toSet != b.keys.toSet) {
@@ -380,4 +382,37 @@ class TomlParserTest extends FlatSpec with Matchers {
 //    recursiveEq(result.get.value, expected)
     result.get.value should equal (expected)
   }
+
+  def readTestFile(filename: String): String = {
+    val inputStream = getClass.getResourceAsStream(filename)
+    Source.fromInputStream(inputStream)(Codec.UTF8).mkString
+  }
+
+  it should "parse the valid BurntSushi files" in {
+    val validFilenames = readTestFile("/burntsushi-toml-test/valid/filenames.txt").split('\n')
+    for (filename <- validFilenames) {
+      println(filename)
+      val input = readTestFile("/burntsushi-toml-test/valid/" + filename + ".toml")
+      val parser = new TomlParser(input)
+      val result = parser.toml.run()
+      result match {
+        case Failure(e: ParseError) =>
+          System.err.println(parser.formatError(e))
+          System.err.println(e.formatTraces)
+        case _ => ()
+      }
+      //TODO: check that it matches json
+      result shouldBe an[Success[_]]
+    }
+  }
+//  // FIXME: need to check that arrays are homogenous
+//  it should "fail to parse the invalid BurntSushi files" in {
+//    val invalidFilenames = readTestFile("/burntsushi-toml-test/invalid/filenames.txt").split('\n')
+//    for (filename <- invalidFilenames) {
+//      val input = readTestFile("/burntsushi-toml-test/invalid/" + filename + ".toml")
+//      val parser = new TomlParser(input)
+//      val result = parser.toml.run()
+//      result shouldBe an[Failure[_]]
+//    }
+//  }
 }

@@ -1,0 +1,4 @@
+short_unicode_upper = "\u03B4"
+short_unicode_lower = "\u03b4"  # hex digits should be case insensitive
+max_unicode_upper = "\U0010FFFF"  # should handle 8 digit format
+max_unicode_lower = "\U0010ffff"  # hex digits should be case insensitive

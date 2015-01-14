@@ -57,9 +57,17 @@ class TomlParser(val input: ParserInput) extends Parser with StringBuilding {
   def tableKeyPath: Rule1[TableKeyPath] = rule {
     "[" ~ nonNlWs ~ ident.+.sep('.') ~ nonNlWs ~ "]" ~!~ nonNlWs ~> TableKeyPath
   }
+  // Latest tag (v0.3.1) says:
+  // Name your tables whatever crap you please, just don't use #, ., [ or ].
+  def ident: Rule1[String] = rule {
+//    capture(noneOf("=#.[]" ++ wsChars).*.+.sep(anyOf(nonNlWsChars).+))
+    capture(noneOf("=#.[]" ++ wsChars).+.sep(nonNlWs.?))
+  }
+  // But...
+  // HEAD as of 2014-01-13 (a5f2d76fe6a55146f9ac301a140123ba1ca93b24) says:
   // Identifiers may only consist of non-whitespace, non-newline characters
   // excluding '=', '#', '.', '[', and ']'
-  def ident: Rule1[String] = rule { capture(noneOf("=#.[]\n\r\f\t ").+) }
+  //def ident: Rule1[String] = rule { capture(noneOf("=#.[]" ++ wsChars).+) }
 
   //******** value types *********
   def sign: Rule0 = rule { anyOf("+-") }
@@ -119,7 +127,7 @@ class TomlParser(val input: ParserInput) extends Parser with StringBuilding {
       '\'') ~> TomlString
   }
   def escapedChar: Rule0 = rule { '\\' ~!~ (
-      (anyOf("\"\'\\") ~ appendSB)
+      (anyOf("\"'\\/") ~ appendSB)
         | 'b' ~ appendSB('\b')
         | 'f' ~ appendSB('\f')
         | 'n' ~ appendSB('\n')
@@ -128,10 +136,16 @@ class TomlParser(val input: ParserInput) extends Parser with StringBuilding {
         | unicode
     )
   }
-  // FIXME: TOML docs say something about a "\UXXXXXXXX" form?
   def unicode: Rule0 = rule {
-    'u' ~ capture(4 times HexDigit) ~> (
-      (s: String) => appendSB(parseInt(s, 16).toChar))
+    ('u' ~!~ capture(4 times HexDigit)
+      | 'U' ~!~ capture(8 times HexDigit)) ~> (
+      (s: String) => appendSB(unicodeCodePointToStr(s)))
+  }
+//  private val MIN_UNICODE = 32
+  def unicodeCodePointToStr(s: String): String = {
+    val codePoint = BigInt(s, 16) // convert from hex
+    val bytes: Array[Byte] = codePoint.toByteArray.reverse.padTo(4, 0: Byte).reverse //
+    new String(bytes, "UTF-32BE")
   }
 
   // Datetimes are RFC 3339 / ISO 8601 dates
