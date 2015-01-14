@@ -1,8 +1,6 @@
 package com.samthomson.tombinator
 
-import java.lang.Integer.parseInt
 import javax.xml.bind.DatatypeConverter.parseDateTime
-
 import org.parboiled2._
 import shapeless.{HNil, :: => :::}
 
@@ -141,11 +139,13 @@ class TomlParser(val input: ParserInput) extends Parser with StringBuilding {
       | 'U' ~!~ capture(8 times HexDigit)) ~> (
       (s: String) => appendSB(unicodeCodePointToStr(s)))
   }
-//  private val MIN_UNICODE = 32
   def unicodeCodePointToStr(s: String): String = {
+    // this inefficient, but easiest way to do it correctly.
     val codePoint = BigInt(s, 16) // convert from hex
-    val bytes: Array[Byte] = codePoint.toByteArray.reverse.padTo(4, 0: Byte).reverse //
-    new String(bytes, "UTF-32BE")
+    // convert to big-endian 4-byte array (left-padding with 0 bytes if necessary)
+    val bytes = codePoint.toByteArray.reverse.padTo(4, 0: Byte).reverse
+    // which is exactly what UTF-32BE needs (BE = big-endian)
+    new String(bytes, "UTF-32BE") // back to JVM's UTF-16
   }
 
   // Datetimes are RFC 3339 / ISO 8601 dates

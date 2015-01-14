@@ -168,12 +168,6 @@ class TomlParserTest extends FlatSpec with Matchers {
   it should "parse a single assignment" in {
     val parser = new TomlParser("\n foo =\t5.2\t# comment")
     val result = parser.toml.run()
-    result match {
-      case Failure(e: ParseError) =>
-        System.err.println(parser.formatError(e))
-        System.err.println(e.formatTraces)
-      case _ => ()
-    }
     result should be (Success(TomlTable(Map("foo" -> TomlDouble(5.2)))))
   }
   it should "parse an empty table" in {
@@ -389,10 +383,10 @@ class TomlParserTest extends FlatSpec with Matchers {
   }
 
   it should "parse the valid BurntSushi files" in {
-    val validFilenames = readTestFile("/burntsushi-toml-test/valid/filenames.txt").split('\n')
+    val validDir = "/burntsushi-toml-test/valid/"
+    val validFilenames = readTestFile(validDir + "filenames.txt").split('\n')
     for (filename <- validFilenames) {
-      println(filename)
-      val input = readTestFile("/burntsushi-toml-test/valid/" + filename + ".toml")
+      val input = readTestFile(validDir + filename + ".toml")
       val parser = new TomlParser(input)
       val result = parser.toml.run()
       result match {
