@@ -62,7 +62,9 @@ case class TomlTable(table: Map[String, TomlValue[Any]])
   }
 
   def assign[T](prefix: Seq[String], ident: String, value: TomlValue[T]): TomlTable = prefix match {
-    case Seq() => TomlTable(table.updated(ident, value))
+    case Seq() =>
+      if (table.contains(ident)) throw new DuplicateKeyException(Seq(ident))
+      TomlTable(table.updated(ident, value))
     case Seq(head, tail @ _*) =>
       val newValue = table(head) match {
         case child: TomlTable => child.assign(tail, ident, value)

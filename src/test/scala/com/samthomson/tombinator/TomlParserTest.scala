@@ -197,11 +197,10 @@ class TomlParserTest extends FlatSpec with Matchers {
     result shouldBe an[Success[_]]
     result.get.value should be (expected)
   }
-//  // TOML specifies this, but I'm ignoring it for now
-//  it should "not allow the same key group in multiple places" in {
-//    val input = "[a]\nb = 1\n\n[a]\nc = 2"
-//    new TomlParser(input).toml.run() shouldBe an[Failure[_]]
-//  }
+  it should "not allow the same key group in multiple places" in {
+    val input = "[a]\nb = 1\n\n[a]\nc = 2"
+    new TomlParser(input).toml.run() shouldBe an[Failure[_]]
+  }
   it should "not allow duplicate keys" in {
     val input =
       """[a]
@@ -382,8 +381,10 @@ class TomlParserTest extends FlatSpec with Matchers {
     Source.fromInputStream(inputStream)(Codec.UTF8).mkString
   }
 
+  val burntSushiDir = "/burntsushi-toml-test/"
+
   it should "parse the valid BurntSushi files" in {
-    val validDir = "/burntsushi-toml-test/valid/"
+    val validDir = burntSushiDir + "valid/"
     val validFilenames = readTestFile(validDir + "filenames.txt").split('\n')
     for (filename <- validFilenames) {
       val input = readTestFile(validDir + filename + ".toml")
@@ -399,14 +400,15 @@ class TomlParserTest extends FlatSpec with Matchers {
       result shouldBe an[Success[_]]
     }
   }
-//  // FIXME: need to check that arrays are homogenous
-//  it should "fail to parse the invalid BurntSushi files" in {
-//    val invalidFilenames = readTestFile("/burntsushi-toml-test/invalid/filenames.txt").split('\n')
-//    for (filename <- invalidFilenames) {
-//      val input = readTestFile("/burntsushi-toml-test/invalid/" + filename + ".toml")
-//      val parser = new TomlParser(input)
-//      val result = parser.toml.run()
-//      result shouldBe an[Failure[_]]
-//    }
-//  }
+  it should "fail to parse the invalid BurntSushi files" in {
+    val invalidDir = burntSushiDir + "invalid/"
+    val invalidFilenames = readTestFile(invalidDir + "filenames.txt").split('\n')
+    for (filename <- invalidFilenames if !filename.startsWith("#")) {
+      println(filename)
+      val input = readTestFile(invalidDir + filename + ".toml")
+      val parser = new TomlParser(input)
+      val result = parser.toml.run()
+      result shouldBe an[Failure[_]]
+    }
+  }
 }

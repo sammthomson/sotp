@@ -1,6 +1,7 @@
 package com.samthomson.tombinator
 
 import javax.xml.bind.DatatypeConverter.parseDateTime
+import com.samthomson.tombinator.TomlTable.DuplicateKeyException
 import org.parboiled2._
 import shapeless.{HNil, :: => :::}
 
@@ -11,21 +12,32 @@ object TomlParser {
   case class Assignment[V](key: String, value: TomlValue[V]) extends Statement
 
   sealed abstract class KeyPath(val keys: Seq[String], val default: TomlContainer) extends Statement
-
   case class ArrayKeyPath(override val keys: Seq[String]) extends KeyPath(keys, TomlArray.empty)
-
   case class TableKeyPath(override val keys: Seq[String]) extends KeyPath(keys, TomlTable.empty)
 
-  case class State(table: TomlTable, path: KeyPath) {
+  case class State(table: TomlTable, path: KeyPath, pathsUsed: Set[Seq[String]]) {
     def update(stmt: Statement): State = stmt match {
       case keyPath: KeyPath =>
-        State(table.addKeyPath(keyPath, keyPath.keys), keyPath)
+        val newTableKeyPath = Some(keyPath).collect { case tkp: TableKeyPath =>
+          // TOML says it's OK if a table already exists b/c of
+          // auto-vivification, but not OK if it was b/c it was explicitly
+          // specified previously.
+          // So we keep track of all explicitly specified table paths.
+          if (pathsUsed.contains(tkp.keys))
+            throw new DuplicateKeyException(tkp.keys)
+          tkp.keys
+        }
+        State(
+          table.addKeyPath(keyPath, keyPath.keys),
+          keyPath,
+          pathsUsed ++ newTableKeyPath
+        )
       case Assignment(ident, value) =>
         copy(table = table.assign(path.keys, ident, value))
     }
   }
   object State {
-    val start: State = State(TomlTable.empty, TableKeyPath(Seq()))
+    val start: State = State(TomlTable.empty, TableKeyPath(Seq()), Set())
   }
 }
 
