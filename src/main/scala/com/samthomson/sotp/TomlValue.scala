@@ -1,9 +1,9 @@
-package com.samthomson.tombinator
+package com.samthomson.sotp
 
 import java.util.Date
 
-import com.samthomson.tombinator.TomlParser.{ArrayKeyPath, KeyPath, TableKeyPath}
-import com.samthomson.tombinator.TomlValue.{DuplicateKeyException, EmptyKeyException, HeterogeneousArrayException}
+import com.samthomson.sotp.TomlParser.{ArrayKeyPath, KeyPath, TableKeyPath}
+import com.samthomson.sotp.TomlValue.{DuplicateKeyException, EmptyKeyException, HeterogeneousArrayException}
 
 // TODO: serialization?
 sealed trait TomlValue[+T] {

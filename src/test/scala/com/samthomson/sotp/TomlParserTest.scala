@@ -1,8 +1,8 @@
-package com.samthomson.tombinator
+package com.samthomson.sotp
 
 import javax.xml.bind.DatatypeConverter.parseDateTime
 
-import com.samthomson.tombinator.TomlParser.Assignment
+import com.samthomson.sotp.TomlParser.Assignment
 import org.parboiled2.ParseError
 import org.scalatest.{FlatSpec, Matchers}
 

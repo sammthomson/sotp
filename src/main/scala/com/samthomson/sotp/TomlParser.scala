@@ -1,7 +1,7 @@
-package com.samthomson.tombinator
+package com.samthomson.sotp
 
 import javax.xml.bind.DatatypeConverter.parseDateTime
-import com.samthomson.tombinator.TomlValue.DuplicateKeyException
+import com.samthomson.sotp.TomlValue.DuplicateKeyException
 import org.parboiled2._
 import shapeless.{HNil, :: => :::}
 
