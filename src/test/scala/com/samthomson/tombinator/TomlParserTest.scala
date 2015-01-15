@@ -12,6 +12,7 @@ import scala.util.{Failure, Success}
 /**
  * Tests for TomlParser
  * Most tests are adapted straight from the TOML spec
+ * TODO: some of these are redundant wrt the BurntSushi tests
  */
 class TomlParserTest extends FlatSpec with Matchers {
   "TomlParser.eol" should "parse end of lines" in {
@@ -381,6 +382,7 @@ class TomlParserTest extends FlatSpec with Matchers {
     Source.fromInputStream(inputStream)(Codec.UTF8).mkString
   }
 
+  // ***** BurntSushi test fixtures *****
   val burntSushiDir = "/burntsushi-toml-test/"
 
   it should "parse the valid BurntSushi files" in {
@@ -403,8 +405,7 @@ class TomlParserTest extends FlatSpec with Matchers {
   it should "fail to parse the invalid BurntSushi files" in {
     val invalidDir = burntSushiDir + "invalid/"
     val invalidFilenames = readTestFile(invalidDir + "filenames.txt").split('\n')
-    for (filename <- invalidFilenames if !filename.startsWith("#")) {
-      println(filename)
+    for (filename <- invalidFilenames) {
       val input = readTestFile(invalidDir + filename + ".toml")
       val parser = new TomlParser(input)
       val result = parser.toml.run()

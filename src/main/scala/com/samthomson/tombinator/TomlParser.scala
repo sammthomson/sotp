@@ -1,7 +1,7 @@
 package com.samthomson.tombinator
 
 import javax.xml.bind.DatatypeConverter.parseDateTime
-import com.samthomson.tombinator.TomlTable.DuplicateKeyException
+import com.samthomson.tombinator.TomlValue.DuplicateKeyException
 import org.parboiled2._
 import shapeless.{HNil, :: => :::}
 
@@ -24,7 +24,7 @@ object TomlParser {
           // specified previously.
           // So we keep track of all explicitly specified table paths.
           if (pathsUsed.contains(tkp.keys))
-            throw new DuplicateKeyException(tkp.keys)
+            throw DuplicateKeyException(tkp.keys)
           tkp.keys
         }
         State(
@@ -70,7 +70,6 @@ class TomlParser(val input: ParserInput) extends Parser with StringBuilding {
   // Latest tag (v0.3.1) says:
   // Name your tables whatever crap you please, just don't use #, ., [ or ].
   def ident: Rule1[String] = rule {
-//    capture(noneOf("=#.[]" ++ wsChars).*.+.sep(anyOf(nonNlWsChars).+))
     capture(noneOf("=#.[]" ++ wsChars).+.sep(nonNlWs.?))
   }
   // But...

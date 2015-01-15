@@ -24,7 +24,7 @@ Tombinator is open source, under the MIT license (see LICENSE.txt).
 - Incompatibilities:
     * [x] 8 digit unicode format
     * [x] Check for duplicate keys
-    * [ ] Check that types of all elements of array match (up to erasure)
+    * [x] Check that types of all elements of array match (up to erasure)
     * [ ] Disallow control characters
 - [ ] Check that valid BurntSushi tests match expected JSON
 - [ ] Write serializer

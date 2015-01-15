@@ -1,6 +1,6 @@
-#array-mixed-types-arrays-and-ints
-#array-mixed-types-ints-and-floats
-#array-mixed-types-strings-and-ints
+array-mixed-types-arrays-and-ints
+array-mixed-types-ints-and-floats
+array-mixed-types-strings-and-ints
 datetime-malformed-no-leads
 datetime-malformed-no-secs
 datetime-malformed-no-t
